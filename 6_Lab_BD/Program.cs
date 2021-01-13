@@ -99,6 +99,27 @@ namespace _6_Lab_BD
                 db.ExecuteRequest(request).Close();
                 Console.ReadLine();
 
+                //Сменить пароль
+                Console.WriteLine("======================================");
+                Console.WriteLine("Сменить пароль");
+                request = "update user set password = \"new_password131231\" where id = 25;";
+                db.ExecuteRequest(request).Close();
+                Console.ReadLine();
+
+                //Отправить сообщение
+                Console.WriteLine("======================================");
+                Console.WriteLine("Отправить сообщение");
+                request = "insert message (send_date, life_time, dialog_id, text_message) values(\"2020-11-24 09:22:30\", \"2:00:00\", \"4\", \"Привет всем!\"); ";
+                db.ExecuteRequest(request).Close();
+                Console.ReadLine();
+
+                //Удалить пользователя
+                Console.WriteLine("======================================");
+                Console.WriteLine("Удалить пользователя");
+                request = "delete from user where id = \"40\"; ";
+                db.ExecuteRequest(request).Close();
+                Console.ReadLine();
+
                 //Получить среднее количество сообщений в диалоге
                 Console.WriteLine("======================================");
                 Console.WriteLine("Среднее количество сообщений в диалоге");
