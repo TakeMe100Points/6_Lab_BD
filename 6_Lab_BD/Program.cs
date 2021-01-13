@@ -74,27 +74,29 @@ namespace _6_Lab_BD
                 var reader = db.ExecuteRequest(request);
                 while (reader.Read())
                     Console.WriteLine(reader.GetString(0));
-
+                reader.Close();
+                Console.ReadLine();
 
                 //Создать новый диалог
                 Console.WriteLine("======================================");            
                 Console.WriteLine("Создать новый диалог");
                 request = "insert dialog (name, id_admin) values(\"Политех new\", \"42\"); ";
-                db.ExecuteRequest(request);
+                db.ExecuteRequest(request).Close();
                 Console.ReadLine();
 
 
                 //Обновить название
                 Console.WriteLine("======================================");
-                request = "update dialog set name =  where name = \"VSTU new\"";
-                db.ExecuteRequest(request);
+                Console.WriteLine("Изменить название диалога");
+                request = "update dialog set name = \"VSTU new\" where name = \"Политех new\";";
+                db.ExecuteRequest(request).Close();
                 Console.ReadLine();
 
                 //Удалить добавленный диалог
                 Console.WriteLine("======================================");
                 Console.WriteLine("Удалить новый диалог");
                 request = "delete from dialog where name = \"VSTU new\"";
-                db.ExecuteRequest(request);
+                db.ExecuteRequest(request).Close();
                 Console.ReadLine();
 
                 //Получить среднее количество сообщений в диалоге
@@ -104,6 +106,9 @@ namespace _6_Lab_BD
                 reader = db.ExecuteRequest(request);
                 while (reader.Read())
                     Console.WriteLine(reader.GetString(0));
+                reader.Close();
+                Console.ReadLine();
+
 
                 //Получить среднее количество пользователей в диалоге
                 Console.WriteLine("======================================");
@@ -112,6 +117,8 @@ namespace _6_Lab_BD
                 reader = db.ExecuteRequest(request);
                 while (reader.Read())
                     Console.WriteLine(reader.GetString(0));
+                reader.Close();
+                Console.ReadLine();
 
 
                 db.Close();
