@@ -50,9 +50,9 @@ namespace _6_Lab_BD
 
         public static void InitializeDBConnection(DBConnection db)
         {
-            db.Server = Constants.Server;
-            db.Password = Constants.Password;
-            db.UserName = Constants.UserName;
+            db.Server       = Constants.Server;
+            db.Password     = Constants.Password;
+            db.UserName     = Constants.UserName;
             db.DatabaseName = Constants.DatabaseName;
         }
     }
@@ -65,86 +65,205 @@ namespace _6_Lab_BD
 
             DBConnection.InitializeDBConnection(db);
 
-            if (db.IsConnect())
+            if (!db.IsConnect())
             {
-                //Получить список пользователей (не более 10)
-                Console.WriteLine("======================================");
-                Console.WriteLine("Получить список пользователей (не более 10)");
-                string request = "select name from user limit 10;";
-                var reader = db.ExecuteRequest(request);
-                while (reader.Read())
-                    Console.WriteLine(reader.GetString(0));
-                reader.Close();
-                Console.ReadLine();
+                Console.WriteLine("Ошибка подключения к базе данных");
+                return;
+            }
+            MySqlDataReader reader = null;
+           
+            while (true)
+            {
+                Console.WriteLine("=======================================================");
+                Console.WriteLine("Выберите номер действия:");
+                Console.WriteLine("1 - Вывести подходящие стикеры для сообщения с текстом...\n" +
+                                  "2 - Добавить/Редактировать/Удалить пользователя\n" +
+                                  "3 - Добавить/Редактировать/Удалить диалог \n" +
+                                  "4 - Показать все сообщения пользователя с именем...\n" + 
+                                  "5 - Показать все вложения диалога с названием...\n" +
+                                  "6 - Показать всех друзей для пользователя..." + 
+                                  "Exit - to exit from app");
+                Console.WriteLine("=======================================================");
 
-                //Создать новый диалог
-                Console.WriteLine("======================================");            
-                Console.WriteLine("Создать новый диалог");
-                request = "insert dialog (name, id_admin) values(\"Политех new\", \"42\"); ";
-                db.ExecuteRequest(request).Close();
-                Console.ReadLine();
+                try
+                {
+                    switch (Console.ReadLine())
+                    {
+                        case "1":
+                            {
+                                Console.WriteLine("Введите текст для подбора стикеров");
+                                string text = Console.ReadLine();
+                                string request = $"select *	from stickers where text_sticker like '%{text}%'; ";
+                                reader = db.ExecuteRequest(request);
+
+                                while (reader?.Read() ?? false)
+                                    Console.WriteLine("|" + reader?.GetString(0) + "|" + reader?.GetString(1) + "|" + reader?.GetString(2) + "|" + reader?.GetString(3) + "|");
+                               
+                                reader?.Close();
+                                Console.ReadLine();
+                                break;
+                            }
+                        case "2":
+                            {
+                                Console.WriteLine("1 - Добавить \n 2 - Редактировать \n 3 - Удалить");
+                                string request;
+
+                                switch (Console.ReadLine())
+                                {
+                                    case "1":
+                                        {
+                                            Console.WriteLine("Введите ваше имя");
+                                            string name = Console.ReadLine();
+
+                                            Console.WriteLine("Введите пароль");
+                                            string pass = Console.ReadLine();
+
+                                            request = $"insert user (name, password) values ('{name}', '{pass}');";
+                                            break;
+                                        }
+                                    case "2":
+                                        {
+                                            Console.WriteLine("Введите ваше прошлое имя");
+                                            string name = Console.ReadLine();
+
+                                            Console.WriteLine("Введите ваше новое имя");
+                                            string newname = Console.ReadLine();
+
+                                            request = $"update user set name = '{newname}' where name = '{name}'";
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            Console.WriteLine("Введите имя аккаунта, который вы хотите удалить:");
+                                            string name = Console.ReadLine();
+                                            request = $"delete from user where name = '{name}'";
+                                            break;
+                                        }
+                                }
+                                reader = db.ExecuteRequest(request);
+                                reader?.Close();
+                                break;
+                            }
+                        case "3":
+                            {
+                                Console.WriteLine("1 - Добавить \n 2 - Редактировать \n 3 - Удалить");
+                                string request;
+
+                                switch (Console.ReadLine())
+                                {
+                                    case "1":
+                                        {
+                                            Console.WriteLine("Введите имя диалога");
+                                            string name = Console.ReadLine();
+
+                                            Console.WriteLine("Введите идентификатор пользователя, который будет администратором");
+                                            string admin = Console.ReadLine();
+
+                                            request = $"insert dialog (name, id_admin) values ('{name}', '{admin}');";
+                                            break;
+                                        }
+                                    case "2":
+                                        {
+                                            Console.WriteLine("Введите старое название диалога");
+                                            string name = Console.ReadLine();
+
+                                            Console.WriteLine("Введите новое название диалога");
+                                            string newname = Console.ReadLine();
+
+                                            request = $"update dialog set name = '{newname}' where name = '{name}'";
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            Console.WriteLine("Введите название диалога, который вы хотите удалить:");
+                                            string name = Console.ReadLine();
+                                            request = $"delete from dialog where name = '{name}'";
+                                            break;
+                                        }
+                                }
+                                reader = db.ExecuteRequest(request);
+                                reader?.Close();
+                                break;
+                            }
+                        case "4":
+                            {
+                                Console.WriteLine("Введите имя человека");
+                                string name = Console.ReadLine();
+
+                                string request = "select message.text_message from user " +
+                                    "join user_dialog on id_user = user.id " +
+                                    "join dialog on id_dialog = dialog.id " +
+                                    "join message on dialog_id = dialog.id " +
+                                    $"where user.name = '{name}' and text_message is not null;";
+
+                                reader = db.ExecuteRequest(request);
+                                
+                                while (reader.Read())
+                                    Console.WriteLine("|" + reader.GetString(0) ?? "null" + "|" + reader.GetString(1) ?? "null" + "|");
+                                reader.Close();
+                                break;
+                            }
+                        case "5":
+                            {
+                                Console.WriteLine("Введите название диалога");
+                                string name = Console.ReadLine();
+
+                                string request = "select ref_to_content from content " +
+                                                        "join message on message_id = message.id " +
+                                                        "join dialog on dialog_id = dialog.id " +
+                                                         $"where dialog.name = '{name}'; ";
+                                reader = db.ExecuteRequest(request);
+
+                                while (reader?.Read() ?? false)
+                                    Console.WriteLine("|" + reader?.GetString(0) + "|");
+
+                                reader?.Close();
+                                break;
+                            }
+                        case "6":
+                            {
+                                Console.WriteLine("Введите имя пользователя");
+                                string name = Console.ReadLine();
+
+                                string request = " select user1.name " +
+                                                        "from user as user1 " +
+                                                        "join user_dialog on user1.id = user_dialog.id_user " +
+                                                        "join user as user2 " +
+                                                        "where id_dialog in " +
+                                                        "(select id_dialog from user_dialog " +
+                                                        "join user on user_dialog.id_user = user.id " +
+                                                        $"where user.name = '{name}') and user1.name != '{name}' and user2.name = '{name}';";
+
+                                reader = db.ExecuteRequest(request);
+
+                                while (reader?.Read() ?? false)
+                                    Console.WriteLine("|" + reader?.GetString(0) + "|");
+                                reader?.Close();
+                                break;
+                            }
+                        case "Exit":
+                            {
+                                Console.WriteLine("Выход из приложения...");
+                                return;
+                                break;
+                            }
+                        default:
+                            {
+                                Console.WriteLine("Вы ввели неверное действие, повторите снова...");
+                                break;
+                            }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    reader?.Close();
+                }
 
 
-                //Обновить название
-                Console.WriteLine("======================================");
-                Console.WriteLine("Изменить название диалога");
-                request = "update dialog set name = \"VSTU new\" where name = \"Политех new\";";
-                db.ExecuteRequest(request).Close();
-                Console.ReadLine();
-
-                //Удалить добавленный диалог
-                Console.WriteLine("======================================");
-                Console.WriteLine("Удалить новый диалог");
-                request = "delete from dialog where name = \"VSTU new\"";
-                db.ExecuteRequest(request).Close();
-                Console.ReadLine();
-
-                //Сменить пароль
-                Console.WriteLine("======================================");
-                Console.WriteLine("Сменить пароль");
-                request = "update user set password = \"new_password131231\" where id = 25;";
-                db.ExecuteRequest(request).Close();
-                Console.ReadLine();
-
-                //Отправить сообщение
-                Console.WriteLine("======================================");
-                Console.WriteLine("Отправить сообщение");
-                request = "insert message (send_date, life_time, dialog_id, text_message) values(\"2020-11-24 09:22:30\", \"2:00:00\", \"4\", \"Привет всем!\"); ";
-                db.ExecuteRequest(request).Close();
-                Console.ReadLine();
-
-                //Удалить пользователя
-                Console.WriteLine("======================================");
-                Console.WriteLine("Удалить пользователя");
-                request = "delete from user where id = \"40\"; ";
-                db.ExecuteRequest(request).Close();
-                Console.ReadLine();
-
-                //Получить среднее количество сообщений в диалоге
-                Console.WriteLine("======================================");
-                Console.WriteLine("Среднее количество сообщений в диалоге");
-                request = "select count(*) / count(distinct dialog_id) from message;";
-                reader = db.ExecuteRequest(request);
-                while (reader.Read())
-                    Console.WriteLine(reader.GetString(0));
-                reader.Close();
-                Console.ReadLine();
-
-
-                //Получить среднее количество пользователей в диалоге
-                Console.WriteLine("======================================");
-                Console.WriteLine("Cреднее количество пользователей в диалоге");
-                request = "select count(*) / count(distinct id_user) from user_dialog;";
-                reader = db.ExecuteRequest(request);
-                while (reader.Read())
-                    Console.WriteLine(reader.GetString(0));
-                reader.Close();
-                Console.ReadLine();
-
-
-                db.Close();
 
             }
+            db.Close();
         }
 
     }
